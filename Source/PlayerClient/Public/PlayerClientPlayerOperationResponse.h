@@ -14,6 +14,7 @@
 
 #include "PlayerClientBaseModel.h"
 #include "PlayerClientPlayerOperationAction.h"
+#include "PlayerClientPlayerOperationResponseTransactionsInner.h"
 
 namespace OpenAPI
 {
@@ -69,6 +70,7 @@ public:
 	FString UserId;
 	int64 ChainId = 0;
 	TArray<PlayerClientPlayerOperationAction> Actions;
+	TArray<PlayerClientPlayerOperationResponseTransactionsInner> Transactions;
 	FString Url;
 };
 

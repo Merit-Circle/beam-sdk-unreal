@@ -26,7 +26,7 @@ Private/PlayerClientCommonStatsResponse.cpp
 Private/PlayerClientCommonStatsResponseCount.cpp
 Private/PlayerClientCommonUserActivityRequestInput.cpp
 Private/PlayerClientConfirmOperationRequest.cpp
-Private/PlayerClientConfirmOperationRequestActionsInner.cpp
+Private/PlayerClientConfirmOperationRequestTransactionsInner.cpp
 Private/PlayerClientConnectorApi.cpp
 Private/PlayerClientConnectorApiOperations.cpp
 Private/PlayerClientContractApi.cpp
@@ -112,6 +112,7 @@ Private/PlayerClientPlayerOperationAction.cpp
 Private/PlayerClientPlayerOperationActionSignature.cpp
 Private/PlayerClientPlayerOperationActionTransaction.cpp
 Private/PlayerClientPlayerOperationResponse.cpp
+Private/PlayerClientPlayerOperationResponseTransactionsInner.cpp
 Private/PlayerClientRampApi.cpp
 Private/PlayerClientRampApiOperations.cpp
 Private/PlayerClientReadContractRequest.cpp
@@ -161,7 +162,7 @@ Public/PlayerClientCommonStatsResponse.h
 Public/PlayerClientCommonStatsResponseCount.h
 Public/PlayerClientCommonUserActivityRequestInput.h
 Public/PlayerClientConfirmOperationRequest.h
-Public/PlayerClientConfirmOperationRequestActionsInner.h
+Public/PlayerClientConfirmOperationRequestTransactionsInner.h
 Public/PlayerClientConnectorApi.h
 Public/PlayerClientConnectorApiOperations.h
 Public/PlayerClientContractApi.h
@@ -245,6 +246,7 @@ Public/PlayerClientPlayerOperationAction.h
 Public/PlayerClientPlayerOperationActionSignature.h
 Public/PlayerClientPlayerOperationActionTransaction.h
 Public/PlayerClientPlayerOperationResponse.h
+Public/PlayerClientPlayerOperationResponseTransactionsInner.h
 Public/PlayerClientRampApi.h
 Public/PlayerClientRampApiOperations.h
 Public/PlayerClientReadContractRequest.h

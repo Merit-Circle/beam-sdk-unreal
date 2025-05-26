@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 
-#include "PlayerClientConfirmOperationRequestActionsInner.h"
+#include "PlayerClientConfirmOperationRequestTransactionsInner.h"
 
 #include "PlayerClientModule.h"
 #include "PlayerClientHelpers.h"
@@ -20,7 +20,7 @@
 namespace OpenAPI
 {
 
-void PlayerClientConfirmOperationRequestActionsInner::WriteJson(JsonWriter& Writer) const
+void PlayerClientConfirmOperationRequestTransactionsInner::WriteJson(JsonWriter& Writer) const
 {
 	Writer->WriteObjectStart();
 	Writer->WriteIdentifierPrefix(TEXT("id")); WriteJsonValue(Writer, Id);
@@ -28,7 +28,7 @@ void PlayerClientConfirmOperationRequestActionsInner::WriteJson(JsonWriter& Writ
 	Writer->WriteObjectEnd();
 }
 
-bool PlayerClientConfirmOperationRequestActionsInner::FromJson(const TSharedPtr<FJsonValue>& JsonValue)
+bool PlayerClientConfirmOperationRequestTransactionsInner::FromJson(const TSharedPtr<FJsonValue>& JsonValue)
 {
 	const TSharedPtr<FJsonObject>* Object;
 	if (!JsonValue->TryGetObject(Object))
