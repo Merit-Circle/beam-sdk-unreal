@@ -210,6 +210,7 @@ void PlayerClientPlayerOperationResponse::WriteJson(JsonWriter& Writer) const
 	Writer->WriteIdentifierPrefix(TEXT("userId")); WriteJsonValue(Writer, UserId);
 	Writer->WriteIdentifierPrefix(TEXT("chainId")); WriteJsonValue(Writer, ChainId);
 	Writer->WriteIdentifierPrefix(TEXT("actions")); WriteJsonValue(Writer, Actions);
+	Writer->WriteIdentifierPrefix(TEXT("transactions")); WriteJsonValue(Writer, Transactions);
 	Writer->WriteIdentifierPrefix(TEXT("url")); WriteJsonValue(Writer, Url);
 	Writer->WriteObjectEnd();
 }
@@ -232,6 +233,7 @@ bool PlayerClientPlayerOperationResponse::FromJson(const TSharedPtr<FJsonValue>&
 	ParseSuccess &= TryGetJsonValue(*Object, TEXT("userId"), UserId);
 	ParseSuccess &= TryGetJsonValue(*Object, TEXT("chainId"), ChainId);
 	ParseSuccess &= TryGetJsonValue(*Object, TEXT("actions"), Actions);
+	ParseSuccess &= TryGetJsonValue(*Object, TEXT("transactions"), Transactions);
 	ParseSuccess &= TryGetJsonValue(*Object, TEXT("url"), Url);
 
 	return ParseSuccess;

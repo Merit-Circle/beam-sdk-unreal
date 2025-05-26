@@ -13,7 +13,7 @@
 #pragma once
 
 #include "PlayerClientBaseModel.h"
-#include "PlayerClientConfirmOperationRequestActionsInner.h"
+#include "PlayerClientConfirmOperationRequestTransactionsInner.h"
 
 namespace OpenAPI
 {
@@ -42,7 +42,8 @@ public:
 	static FString EnumToString(const StatusEnum& EnumValue);
 	static bool EnumFromString(const FString& EnumAsString, StatusEnum& EnumValue);
 	StatusEnum Status;
-	TOptional<TArray<PlayerClientConfirmOperationRequestActionsInner>> Actions;
+	TOptional<TArray<PlayerClientConfirmOperationRequestTransactionsInner>> Transactions;
+	TOptional<TArray<PlayerClientConfirmOperationRequestTransactionsInner>> Actions;
 };
 
 }

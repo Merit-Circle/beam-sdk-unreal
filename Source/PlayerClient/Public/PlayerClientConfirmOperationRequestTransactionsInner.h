@@ -18,14 +18,14 @@ namespace OpenAPI
 {
 
 /*
- * PlayerClientConfirmOperationRequestActionsInner
+ * PlayerClientConfirmOperationRequestTransactionsInner
  *
  * 
  */
-class PLAYERCLIENT_API PlayerClientConfirmOperationRequestActionsInner : public Model
+class PLAYERCLIENT_API PlayerClientConfirmOperationRequestTransactionsInner : public Model
 {
 public:
-    virtual ~PlayerClientConfirmOperationRequestActionsInner() {}
+    virtual ~PlayerClientConfirmOperationRequestTransactionsInner() {}
 	bool FromJson(const TSharedPtr<FJsonValue>& JsonValue) final;
 	void WriteJson(JsonWriter& Writer) const final;
 
