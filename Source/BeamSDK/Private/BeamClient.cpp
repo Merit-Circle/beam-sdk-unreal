@@ -139,8 +139,13 @@ TFuture<BeamConnectionResult> UBeamClient::ConnectUserToGameAsync(FString entity
 
 		                          if (connRequest.Status == CreateConnectionRequestStatusEnum::Error)
 		                          {
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
-			                          return BeamConnectionResult(EBeamResultType::Error, resBody);
+			                          const auto httpResponse = res.GetHttpResponse();
+			                          FString errorBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          errorBody = httpResponse->GetContentAsString();
+			                          }
+			                          return BeamConnectionResult(EBeamResultType::Error, errorBody);
 		                          }
 
 		                          UE_CLOG(DebugLog, LogBeamClient, Log, TEXT("Opening %s"), *connRequest.Url);
@@ -304,12 +309,18 @@ TFuture<BeamOperationResult> UBeamClient::RevokeSessionAsync(FString entityId, F
 		                          }
 		                          else
 		                          {
+			                          const auto httpResponse = res.GetHttpResponse();
 			                          int32 errorCode = res.GetHttpResponseCode();
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
-			                          UE_CLOG(DebugLog, LogBeamClient, Log, TEXT("Failed RevokeSessionAsync: %d: %s"),
-			                                  errorCode, *resBody);
+			                          FString errorBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          errorBody = httpResponse->GetContentAsString();
+			                          }
 
-			                          result = BeamOperationResult(EBeamResultType::Error, resBody);
+			                          UE_CLOG(DebugLog, LogBeamClient, Log, TEXT("Failed RevokeSessionAsync: %d: %s"),
+			                                  errorCode, *errorBody);
+
+			                          result = BeamOperationResult(EBeamResultType::Error, errorBody);
 		                          }
 
 		                          // Clear the session key information out of local storage for any result other than rejected.
@@ -421,10 +432,15 @@ TFuture<BeamSessionResult> UBeamClient::CreateSessionAsync(FString entityId, int
 		                          auto res = resFuture.Get();
 		                          if (!res.IsSuccessful() || !IsOk(res.GetHttpResponseCode()))
 		                          {
-			                          int32 errorCode = (int32)res.GetHttpResponseCode();
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
+			                          const auto httpResponse = res.GetHttpResponse();
+			                          int32 errorCode = res.GetHttpResponseCode();
+			                          FString errorBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          errorBody = httpResponse->GetContentAsString();
+			                          }
 			                          UE_CLOG(DebugLog, LogBeamClient, Error,
-			                                  TEXT("Failed CreateSessionRequest: %d %s"), errorCode, *resBody);
+			                                  TEXT("Failed CreateSessionRequest: %d %s"), errorCode, *errorBody);
 			                          return BeamSessionResult(EBeamResultType::Error,
 			                                                   "Failed to create session request");
 		                          }
@@ -432,9 +448,15 @@ TFuture<BeamSessionResult> UBeamClient::CreateSessionAsync(FString entityId, int
 		                          GenerateSessionRequestResponse session = res.Content;
 		                          if (session.Status == GenerateSessionRequestStatusEnum::Error)
 		                          {
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
+			                          const auto httpResponse = res.GetHttpResponse();
+			                          FString errorBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          errorBody = httpResponse->GetContentAsString();
+			                          }
+
 			                          UE_CLOG(DebugLog, LogBeamClient, Error,
-			                                  TEXT("Failed creating session request: %s"), *resBody);
+			                                  TEXT("Failed creating session request: %s"), *errorBody);
 			                          return BeamSessionResult(EBeamResultType::Error,
 			                                                   "CreateSession returned status=Error");
 		                          }
@@ -620,18 +642,31 @@ TFuture<BeamOperationResult> UBeamClient::SignOperationAsync(FString entityId,
 				                          return BeamOperationResult(EBeamResultType::Error, "Operation was not found");
 			                          }
 
-			                          int32 errorCode = (int32)res.GetHttpResponseCode();
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
+			                          const auto httpResponse = res.GetHttpResponse();
+			                          int32 errorCode = res.GetHttpResponseCode();
+			                          FString errorBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          errorBody = httpResponse->GetContentAsString();
+			                          }
+
 			                          FString errorMessage = FString::Printf(
 				                          TEXT("Error retrieving operation(%s): code=%d, response=%s"), *operationId,
-				                          errorCode, *resBody);
+				                          errorCode, *errorBody);
 			                          UE_CLOG(DebugLog, LogBeamClient, Log, TEXT("%s"), *errorMessage);
 			                          return BeamOperationResult(EBeamResultType::Error, errorMessage);
 		                          }
 
 		                          PlayerOperationResponse operation = res.Content;
+
+		                          // if more than one actions and at least one has a signature, otherwise try Browser
+		                          bool hasSignaturesToSign = operation.Actions.Num() > 0
+			                          && operation.Actions.ContainsByPredicate([](const auto& action)
+			                          {
+				                          return action.Signature.IsSet() || action.Transaction.IsSet();
+			                          });
 		                          if (signingBy == EBeamOperationSigningBy::Auto || signingBy ==
-			                          EBeamOperationSigningBy::Session)
+			                          EBeamOperationSigningBy::Session && hasSignaturesToSign)
 		                          {
 			                          UE_CLOG(DebugLog, LogBeamClient, Log, TEXT("Retrieving active session"));
 			                          auto sessionKeys = GetActiveSessionAndKeysAsync(entityId, chainId).Get();
@@ -739,9 +774,14 @@ TFuture<BeamOperationResult> UBeamClient::SignOperationUsingBrowserAsync(
 			FDateTime now = FDateTime::UtcNow();
 			auto shouldRetry = [&, now](const GetOperationResponse& res) -> bool
 			{
+				const auto httpResponse = res.GetHttpResponse();
 				PlayerOperationResponse commonOpRes = res.Content;
 				FString status = PlayerOperationResponse::EnumToString(commonOpRes.Status);
-				FString resBody = res.GetHttpResponse()->GetContentAsString();
+				FString resBody = TEXT("No response body or invalid response.");
+				if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+				{
+					resBody = httpResponse->GetContentAsString();
+				}
 				UE_CLOG(DebugLog, LogBeamClient, Log,
 				        TEXT("GetOperation: shouldRetry? (Status [%s] == Pending OR != (Executed OR Rejected))\n%s"),
 				        *status, *resBody);
@@ -948,7 +988,12 @@ TFuture<BeamOperationResult> UBeamClient::SignOperationUsingSessionAsync(
 			                          FString errorMessage = FString::Printf(
 				                          TEXT("Encountered unknown error when confirming operation %s"),
 				                          *operation.Id);
-			                          FString resBody = res.GetHttpResponse()->GetContentAsString();
+			                          const auto httpResponse = res.GetHttpResponse();
+			                          FString resBody = TEXT("No response body or invalid response.");
+			                          if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			                          {
+				                          resBody = httpResponse->GetContentAsString();
+			                          }
 			                          UE_CLOG(DebugLog, LogBeamClient, Log,
 			                                  TEXT("Confirming operation(%s) encountered an error: %s"),
 			                                  *operation.Id, *resBody);
@@ -1041,9 +1086,16 @@ TFuture<FBeamSessionAndKeyPair> UBeamClient::GetActiveSessionAndKeysAsync(FStrin
 		}
 		else
 		{
-			int32 errorCode = (int32)res.GetHttpResponseCode();
-			FString resBody = res.GetHttpResponse()->GetContentAsString();
-			UE_CLOG(DebugLog, LogBeamClient, Error, TEXT("GetActiveSessionInfo returned: %d %s"), errorCode, *resBody);
+			const auto httpResponse = res.GetHttpResponse();
+			int32 errorCode = res.GetHttpResponseCode();
+			FString errorBody = TEXT("No response body or invalid response.");
+			if (httpResponse.IsValid() && httpResponse->GetContentLength() > 0)
+			{
+				errorBody = httpResponse->GetContentAsString();
+			}
+
+			UE_CLOG(DebugLog, LogBeamClient, Error, TEXT("GetActiveSessionInfo returned: %d %s"), errorCode,
+			        *errorBody);
 		}
 
 		if (sessionKeys.BeamSession.IsSet())
